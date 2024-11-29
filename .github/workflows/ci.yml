@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-and-test:
     runs-on: macos-latest
     strategy:
       matrix:
@@ -33,10 +33,24 @@ jobs:
             }
     steps:
       - uses: actions/checkout@v4
+
       - name: Build
         run: |
           xcodebuild clean build \
           -project 'Cache.xcodeproj' \
           -scheme '${{ matrix.build-config['scheme'] }}' \
+          -sdk '${{ matrix.build-config['sdk'] }}' \
+          -destination '${{ matrix.build-config['destination'] }}'
+
+      - name: Unit "Cache-iOS-Tests"
+        run: |
+          if [ "${{ matrix.build-config['scheme'] }}" == "Cache-watchOS" ]; then
+            echo "A string é igual a Cache-watchOS"
+            exit 0;
+          fi
+
+          xcodebuild test \
+          -project 'Cache.xcodeproj' \
+          -scheme '${{ matrix.build-config['scheme'] }}-Tests' \
           -sdk '${{ matrix.build-config['sdk'] }}' \
           -destination '${{ matrix.build-config['destination'] }}'
